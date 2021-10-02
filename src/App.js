@@ -1,20 +1,30 @@
 import React, { Component } from "react";
 import { BrowserRouter as Router, Route, Redirect, Switch } from "react-router-dom";
-
+import { AuthProvider } from "./components/auth";
+import Login from "./components/login";
+import Signup from "./components/signup";
+import Home from "./components/home";
 
 class App extends Component {
   render() {
-    return (
+    return (<AuthProvider>
       <Router>
-        <Switch>
-          <Route exact path="/">
-            <Redirect to="/login" />
-          </Route>
-          <Route exact path="/login">
+      <Switch>
+        <Route exact path="/">
+          <Redirect to="/login" />
+        </Route>
+        <Route exact path="/login">
             <Login />
-          </Route>
-        </Switch>
-      </Router>);
+        </Route>
+        <Route exact path="/signup">
+            <Signup />
+        </Route>
+        <Route exact path="/home">
+            <Home />
+        </Route>
+      </Switch>
+    </Router>
+    </AuthProvider>);
   }
 }
 
