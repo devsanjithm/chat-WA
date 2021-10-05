@@ -35,7 +35,7 @@ function Home(){
       if (info.length > 0) {
           let viewListUser = []
           info.forEach((item, index) => {
-              if (true) {
+              if (item.id!==currentUser.uid) {
                   viewListUser.push(
                     <div className="flex mb-2 m-2">
                       <button

@@ -2,13 +2,14 @@ import React,{useContext,useState,useEffect} from "react";
 import { AuthContext } from "./auth";
 import { fapp } from "../firebase";
 import moment from 'moment';
+import { doc, onSnapshot,collection } from "firebase/firestore";
 
 
 
 function Chatscreen(props){
 
 
-    const [error, setError] = useState([]);
+    const [error, setError] = useState(0);
     const [name,setName] = useState("");
     const [currentPeerUser,setCurrentPeerUser] = useState(props.name);
     const { currentUser } = useContext(AuthContext);
@@ -17,19 +18,29 @@ function Chatscreen(props){
     const [removeListener,setRemoveListener] = useState("");
     const [inputValue,setInputValue] = useState("");
 
+    let listmess=[];
 
     useEffect(() => {
-       getListHistory();
-    }, [])
+
+       const timer = setTimeout(() => {
+        getListHistory();
+      }, 5000);
+      return () => clearTimeout(timer);
+    },[])
 
     useEffect(() => {
       return () => {
-        if (this.removeListener) {
-          this.removeListener()
+        if (removeListener) {
+          setRemoveListener();
         }
       }
-    }, [])
+    },50000)
 
+    function ds (){
+        if(error!=0){
+            renderListMessage();
+        }
+    }
 
 
     function hashString (str) {
@@ -42,121 +53,42 @@ function Chatscreen(props){
     }
     
     function renderListMessage () {
-      if (listMessage.length > 0) {
+        console.log("logged")
+        console.log(listmess)
+      if (listmess.length > 0) {
+          console.log(listmess)
+          console.log("logged")
           let viewListMessage = []
-          listMessage.forEach((item, index) => {
-              if (item.idFrom === currentUser) {
+          listmess.forEach((item, index) => {
+              if (item.idFrom === currentUser.uid) {
                   // Item right (my message)
                   if (item.type === 0) {
                       viewListMessage.push(
-                          <div className="viewItemRight" key={item.timestamp}>
-                              <span className="textContentItem">{item.content}</span>
+                          <div className="w-10 h-auto bg-red-500 text-left " key={item.timestamp}>
+                              <span className="text-sm">{item.content}</span>
                           </div>
                       )
-                  } else if (item.type === 1) {
-                      viewListMessage.push(
-                          <div className="viewItemRight2" key={item.timestamp}>
-                              <img
-                                  className="imgItemRight"
-                                  src={item.content}
-                                  alt="content message"
-                              />
-                          </div>
-                      )
-                  } else {
-                      viewListMessage.push(
-                          <div className="viewItemRight3" key={item.timestamp}>
-                              <img
-                                  className="imgItemRight"
-                                  src={this.getGifImage(item.content)}
-                                  alt="content message"
-                              />
-                          </div>
-                      )
-                  }
+                      }
+                  
               } else {
                   // Item left (peer message)
                   if (item.type === 0) {
                       viewListMessage.push(
-                          <div className="viewWrapItemLeft" key={item.timestamp}>
-                              <div className="viewWrapItemLeft3">
-                                  {this.isLastMessageLeft(index) ? (
-                                      <img
-                                          src={currentPeerUser.photoUrl}
-                                          alt="avatar"
-                                          className="peerAvatarLeft"
-                                      />
-                                  ) : (
-                                      <div className="viewPaddingLeft"/>
-                                  )}
-                                  <div className="viewItemLeft">
-                                      <span className="textContentItem">{item.content}</span>
+                          <div className="w-10 text-left ml-2 -mb-2" key={item.timestamp}>
+                              <div className="flex flex-row -mb-2">
+                                  <div className="w-10 h-auto bg-purple-500 pl-2 pr-2 pt-1 pb-1 text-white">
+                                      <span className="text-sm">{item.content}</span>
                                   </div>
                               </div>
                               {this.isLastMessageLeft(index) ? (
-                                  <span className="textTimeLeft">
+                                  <span className="text-gray-700 text-xs ml-4">
                   {moment(Number(item.timestamp)).format('ll')}
                 </span>
                               ) : null}
                           </div>
                       )
-                  } else if (item.type === 1) {
-                      viewListMessage.push(
-                          <div className="viewWrapItemLeft2" key={item.timestamp}>
-                              <div className="viewWrapItemLeft3">
-                                  {this.isLastMessageLeft(index) ? (
-                                      <img
-                                          src={currentPeerUser.photoUrl}
-                                          alt="avatar"
-                                          className="peerAvatarLeft"
-                                      />
-                                  ) : (
-                                      <div className="viewPaddingLeft"/>
-                                  )}
-                                  <div className="viewItemLeft2">
-                                      <img
-                                          className="imgItemLeft"
-                                          src={item.content}
-                                          alt="content message"
-                                      />
-                                  </div>
-                              </div>
-                              {this.isLastMessageLeft(index) ? (
-                                  <span className="textTimeLeft">
-                  {moment(Number(item.timestamp)).format('ll')}
-                </span>
-                              ) : null}
-                          </div>
-                      )
-                  } else {
-                      viewListMessage.push(
-                          <div className="viewWrapItemLeft2" key={item.timestamp}>
-                              <div className="viewWrapItemLeft3">
-                                  {this.isLastMessageLeft(index) ? (
-                                      <img
-                                          src={currentPeerUser.photoUrl}
-                                          alt="avatar"
-                                          className="peerAvatarLeft"
-                                      />
-                                  ) : (
-                                      <div className="viewPaddingLeft"/>
-                                  )}
-                                  <div className="viewItemLeft3" key={item.timestamp}>
-                                      <img
-                                          className="imgItemLeft"
-                                          src={this.getGifImage(item.content)}
-                                          alt="content message"
-                                      />
-                                  </div>
-                              </div>
-                              {this.isLastMessageLeft(index) ? (
-                                  <span className="textTimeLeft">
-                  {moment(Number(item.timestamp)).format('ll')}
-                </span>
-                              ) : null}
-                          </div>
-                      )
-                  }
+                  
+                  } 
               }
           })
           return viewListMessage
@@ -164,26 +96,10 @@ function Chatscreen(props){
     }
     
     
-     function isLastMessageLeft(index) {
-      if (
-          (index + 1 < this.listMessage.length &&
-              this.listMessage[index + 1].idFrom === this.currentUserId) ||
-          index === this.listMessage.length - 1
-      ) {
-          return true
-      } else {
-          return false
-      }
-    }
-    
-     const onKeyboardPress = event => {
-      if (event.key === 'Enter') {
-          onSendMessage(inputValue, 0)
-      }
-    }
+   
     
     const onSendMessage = (content, type) => {
-    
+
       if (content.trim() === '') {
           return
       }
@@ -193,8 +109,8 @@ function Chatscreen(props){
           .toString()
     
       const itemMessage = {
-          idFrom: currentUser.id,
-          idTo: currentPeerUser.id,
+          idFrom: currentUser.uid,
+          idTo: currentPeerUser,
           timestamp: timestamp,
           content: content.trim(),
           type: type
@@ -202,8 +118,8 @@ function Chatscreen(props){
     
       fapp.firestore()
           .collection("messages")
-          .doc(this.groupChatId)
-          .collection(this.groupChatId)
+          .doc(groupChatId)
+          .collection(groupChatId)
           .doc(timestamp)
           .set(itemMessage)
           .then(() => {
@@ -216,52 +132,46 @@ function Chatscreen(props){
     
     const getListHistory = () => {
       if (removeListener) {
-          removeListener()
+          setRemoveListener();
       }
       listMessage.length = 0
-      alert("ji"+currentPeerUser);
+      alert(`${currentUser.uid}-${currentPeerUser}`);
+      var chatid="";
       if (
         
           hashString(currentUser.uid) <=
-          hashString(currentPeerUser  )
+          hashString(currentPeerUser)
       ) {
-          setGroupChatId(`${currentUser}-${currentPeerUser}`);
+          setGroupChatId(`${currentUser.uid}-${currentPeerUser}`);
+          chatid=`${currentUser.uid}-${currentPeerUser}`;
       } else {
-          setGroupChatId(`${this.currentPeerUser.id}-${currentUser}`)
+          setGroupChatId(`${currentPeerUser}-${currentUser.uid}`)
+          chatid=`${currentPeerUser}-${currentUser.uid}`;
       }
     
+      console.log("group"+chatid)
       // Get history and listen new data added
-      setRemoveListener(fapp.firestore()
-          .collection("messages")
-          .doc(groupChatId)
-          .collection(groupChatId)
-          .onSnapshot(
-              snapshot => {
-                  snapshot.docChanges().forEach(change => {
-                      if (change.type === "added") {
-                          listMessage.push(change.doc.data())
-                      }
-                  })
-              },
-              err => {
-                  this.props.showToast(0, err.toString())
-              }
-      ))
-    }
-    
-    function isLastMessageRight(index) {
-      if (
-          (index + 1 < listMessage.length &&
-              listMessage[index + 1].idFrom !== currentUser) ||
-          index === listMessage.length - 1
-      ) {
-          return true
-      } else {
-          return false
-      }
-    }
-    
+      const nstub =collection(fapp.firestore(),"messages", chatid,chatid);
 
+         const unsubscribe = onSnapshot(nstub, (querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                console.log(listmess);
+                listmess.push(doc.data());
+            });
+
+        });
+
+
+      setRemoveListener(nstub)
+      setError(1);
+    }
+    
+    
+    function onKeyboardPress(event) {
+        if (event.key === 'Enter') {
+            onSendMessage(inputValue, 0)
+        }
+      }
 
 
     return(
@@ -273,14 +183,17 @@ function Chatscreen(props){
                     {renderListMessage()}
                 </div>
              <div className="absolute flex justify-center border border-black bottom-0 w-9/12 p-4 right-0 bg-white">
-                 <input type="text" onChange={(e)=>setInputValue(e.target.value)} placeholder="Type your messages" className=" p-2 border border-black w-8/12" />
+                 <input type="text" onKeyUp={onKeyboardPress} onChange={(e)=>setInputValue(e.target.value)} placeholder="Type your messages" className=" p-2 border border-black w-8/12" />
                  <span className="pl-4"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 20 20" fill="currentColor">
   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
 </svg></span>
              </div>
            </div>
     );
+
+    
 }
+
 
 
 export default Chatscreen;
