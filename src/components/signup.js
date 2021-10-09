@@ -25,7 +25,7 @@ function Signup(){
                 console.log(user)
                 setNow(false);
                 alert("Account created Successfully")
-                fapp.firestore().collection("users").doc(user.user.uid).set({ Email: email, password: password, Displayname: displayname, PhoneNumber: phone, Username:username}).then(() => {
+                fapp.firestore().collection("users").doc(user.user.uid).set({ Email: email, password: password, Displayname: displayname, PhoneNumber: phone, Username:username, id:currentUser.uid}).then(() => {
                     
                     user.user.sendEmailVerification().then(() => {
                         alert("Verification Email is send");

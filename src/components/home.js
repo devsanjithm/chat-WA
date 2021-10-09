@@ -5,30 +5,34 @@ import Welcomeboard from "./welcomeboard";
 import Chatscreen from "./chatscreen";
 import { Redirect,Link } from "react-router-dom";
 
-function Home(){
+const Home=()=>{
 
-    const [error, setError] = useState([]);
     const [info, setInfo] = useState([]);
     const [name,setName] = useState([]);
     const[boo,setboo] = useState(0);
+    const[fload,setfload] = useState(0);
     const { currentUser } = useContext(AuthContext);
 
+    if (!currentUser) {
+        alert(currentUser)
+            return <Redirect to="/login"/>;
+      }
 
-    useEffect(() => {
-      fapp.firestore().collection("users").get().then((doc)=>{
-          doc.forEach(element => {
-            var data = element.data();
-            setInfo(arr => [
-                ...arr,
-                data
-            ]);
+    
+      if(fload===0){
+        fapp.firestore().collection("users").get().then((doc)=>{
+            doc.forEach(element => {
+              var data = element.data();
+              setInfo(arr => [
+                  ...arr,
+                  data
+              ]);
+          });
+            
         });
-          
-      });
-      
-      
-    }, [])
-
+        setfload(1);
+    }
+        
 
 
      function renderListUser () {
@@ -42,7 +46,7 @@ function Home(){
                           key={index}
                           className="flex"
                           onClick={() => {
-                              setName(item.id);
+                              setName(item);
                               setboo(1);
                           }}
                       >
@@ -62,9 +66,7 @@ function Home(){
   }
 
 
-  if (!currentUser) {
-        return <Redirect to="/" />;
-}
+ 
 
 
 
@@ -76,7 +78,7 @@ function Home(){
                     {renderListUser()}
               </div>
            </div>
-            {boo?(<Chatscreen name={name}/>):(<Welcomeboard />)}
+           {boo?(<Chatscreen name={name}/>):(<Welcomeboard />)}
       </div>
     );
 }

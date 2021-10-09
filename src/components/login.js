@@ -1,7 +1,7 @@
-import React,{useState,useContext} from "react";
+import React,{useState,useContext,useEffect} from "react";
 import { fapp } from "../firebase";
 import { AuthContext } from "./auth";
-import { Redirect,Link } from "react-router-dom";
+import { Redirect,Link,useHistory } from "react-router-dom";
 import validator from 'validator';
 
 function Login(){
@@ -10,6 +10,9 @@ function Login(){
     const [emailcheck, setEmailcheck] = useState("");
     const [passwordcheck, setPasswordcheck] = useState("");
     const [error, setError] = useState("");
+    const history = useHistory();
+    const { currentUser } = useContext(AuthContext);
+
 
 
     const handleSubmit = (e) => {
@@ -58,12 +61,13 @@ function Login(){
 
    
 
-    const { currentUser } = useContext(AuthContext);
+    
+    
     if (currentUser) {
-        if(now){
+      if(now){
             console.log(currentUser)
             return <Redirect to="/home" />;
-        }
+      }
     }
 
     return(
