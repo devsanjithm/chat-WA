@@ -69,6 +69,14 @@ const Home=()=>{
 
 
  
+  const handleclick = (e) => {
+      e.preventDefault();
+            fapp.auth().signOut().then(() => {
+                alert("logout successfully")
+            }).catch((error) => {
+                console.log(error.message);
+            });
+    }
 
 
 
@@ -78,6 +86,11 @@ const Home=()=>{
            <div className="h-screen overflow-y-scroll w-3/12 border border-black ">
               <div className="flex  flex-col mt-20">
                     {renderListUser()}
+              </div>
+              <div className="mt-9">
+                  <button className="bg-red-500 p-2 rounded-2xl" onClick={handleclick}>
+                      Logout   
+                  </button>
               </div>
            </div>
            {boo?(<Chatscreen name={name}/>):(<Welcomeboard />)}
