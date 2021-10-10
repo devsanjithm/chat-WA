@@ -14,7 +14,6 @@ const Home=()=>{
     const { currentUser } = useContext(AuthContext);
 
     if (!currentUser) {
-        alert(currentUser)
             return <Redirect to="/login"/>;
       }
 
@@ -32,6 +31,8 @@ const Home=()=>{
         });
         setfload(1);
     }
+
+   
         
 
 
@@ -39,7 +40,8 @@ const Home=()=>{
       if (info.length > 0) {
           let viewListUser = []
           info.forEach((item, index) => {
-              if (item.id!==currentUser.uid) {
+              
+              if (item.id !== currentUser.uid) {
                   viewListUser.push(
                     <div className="flex mb-2 m-2">
                       <button

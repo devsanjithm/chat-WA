@@ -2,18 +2,21 @@ import React,{useContext,useState,useEffect} from "react";
 import { AuthContext } from "./auth";
 import { fapp } from "../firebase";
 import moment from 'moment';
+import { onSnapshot,collection } from "firebase/firestore";
 
 
 function Chatscreen(props){
 
 
     const { currentUser } = useContext(AuthContext);
-    const [listMessage,setListMessage] = useState([]);
+   const [listMessage,setListMessage] = useState([]);
     const [inputValue,setInputValue] = useState("");
     const [load,setLoad] = useState(true);
     const [val, setval] = useState(0);
-    var groupchatid="";
+    const [groupchatid,setGroupchatid] = useState("");
+    var chatid="";
     var cupp = props.name.id;
+    var removeListener = "";
 
     useEffect(() => {
         if (val === 0) {
@@ -23,26 +26,42 @@ function Chatscreen(props){
             cupp = props.name.id;
             nnew();
           }
+          return () => {
+            if (removeListener) {
+              removeListener = "";
+            }
+        }
       }, [props])
 
    function nnew (){
+            if (removeListener) {
+                removeListener = "";
+            }
             if (
                 
                 hashString(currentUser.uid) <=
                 hashString(cupp)
             ) {
-                groupchatid=`${currentUser.uid}-${cupp}`;
+                setGroupchatid(`${currentUser.uid}-${cupp}`)
+                chatid=`${currentUser.uid}-${cupp}`;
             } else {
-                groupchatid=`${cupp}-${currentUser.uid}`;
+                setGroupchatid(`${cupp}-${currentUser.uid}`)
+                chatid=`${cupp}-${currentUser.uid}`;
             }
             setListMessage([])
-            fapp.firestore().collection("messages").doc(groupchatid).collection(groupchatid).get().then((doc)=>{
-                doc.forEach(element => {
-                var data = element.data();
-                setListMessage(listMessage=>listMessage.concat(data));
-                });      
+            const nstub =collection(fapp.firestore(),"messages", chatid,chatid);
+
+            const unsubscribe = onSnapshot(nstub, (querySnapshot) => {
+                querySnapshot.docChanges().forEach((doc) => {
+                    var data = doc.doc.data();
+                    if(doc.type === "added"){
+                        setListMessage(listMessage=>listMessage.concat(data));
+                    }
+                });
+
             });
             setLoad(false)
+            removeListener=unsubscribe;
     }
 
     if(load){
@@ -62,8 +81,7 @@ function Chatscreen(props){
        
       
       if (listMessage.length > 0) {
-        
-        
+    
          var viewListMessage=[]
 
           listMessage.forEach((item, index) => {
@@ -119,7 +137,7 @@ function Chatscreen(props){
           content: content.trim(),
           type: type
       }
-    
+    console.log(groupchatid)
       fapp.firestore()
           .collection("messages")
           .doc(groupchatid)
@@ -128,7 +146,7 @@ function Chatscreen(props){
           .set(itemMessage)
           .then(() => {
              setInputValue("");
-             setListMessage(listMessage=>listMessage.concat(itemMessage));
+             
           })
           .catch(err => {
               console.log(err.message);

@@ -25,7 +25,7 @@ function Signup(){
                 console.log(user)
                 setNow(false);
                 alert("Account created Successfully")
-                fapp.firestore().collection("users").doc(user.user.uid).set({ Email: email, password: password, Displayname: displayname, PhoneNumber: phone, Username:username, id:currentUser.uid}).then(() => {
+                fapp.firestore().collection("users").doc(user.user.uid).set({ Email: email, password: password, Displayname: displayname, PhoneNumber: phone, Username:username, id:user.user.uid}).then(() => {
                     
                     user.user.sendEmailVerification().then(() => {
                         alert("Verification Email is send");
@@ -38,24 +38,24 @@ function Signup(){
                 }).catch((err) => {
                     setError(err.message);
                 })
-            }).catch(err => {
+        }).catch(err => {
                 console.log(err)
                 alert("User already existes")
                 alreadyUserExists(true)
-            });
+    });
     }
 
     if (redirect) {
         return <Redirect to="/Login" />;
     }
 
-    if (currentUser) {
+    if (currentUser && (error === "")) {
         if (now) {
             return <Redirect to="/login" />;
         }
     }
     
-    if (userExists) {
+    if (userExists && (error === "")) {
         return <Redirect to="/Login" />;
     }
 
