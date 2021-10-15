@@ -28,17 +28,16 @@ function Chatscreen(props){
           }
           return () => {
             if (removeListener) {
-              removeListener = "";
+              removeListener();
             }
         }
       }, [props])
 
    function nnew (){
             if (removeListener) {
-                removeListener = "";
+                removeListener();
             }
             if (
-                
                 hashString(currentUser.uid) <=
                 hashString(cupp)
             ) {
@@ -51,7 +50,7 @@ function Chatscreen(props){
             setListMessage([])
             const nstub =collection(fapp.firestore(),"messages", chatid,chatid);
 
-            const unsubscribe = onSnapshot(nstub, (querySnapshot) => {
+            removeListener = onSnapshot(nstub, (querySnapshot) => {
                 querySnapshot.docChanges().forEach((doc) => {
                     var data = doc.doc.data();
                     if(doc.type === "added"){
@@ -61,7 +60,6 @@ function Chatscreen(props){
 
             });
             setLoad(false)
-            removeListener=unsubscribe;
     }
 
     if(load){
@@ -137,7 +135,6 @@ function Chatscreen(props){
           content: content.trim(),
           type: type
       }
-    console.log(groupchatid)
       fapp.firestore()
           .collection("messages")
           .doc(groupchatid)
@@ -146,7 +143,6 @@ function Chatscreen(props){
           .set(itemMessage)
           .then(() => {
              setInputValue("");
-             
           })
           .catch(err => {
               console.log(err.message);
@@ -174,7 +170,7 @@ function Chatscreen(props){
                 </div>
              <div className="absolute flex justify-center border border-black bottom-0 w-9/12 p-4 right-0 bg-white">
                  <input type="text" onKeyUp={onKeyboardPress} onChange={(e)=>setInputValue(e.target.value)} placeholder="Type your messages" className=" p-2 border border-black w-8/12" value={inputValue} />
-                 <span className="pl-4"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 20 20" fill="currentColor">
+                 <span className="pl-4"><svg xmlns="http://www.w3.org/2000/svg" onClick={() =>onSendMessage(inputValue, 0)} class="h-10 w-10" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
                </svg></span>
              </div>
